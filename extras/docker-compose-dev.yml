@@ -1,0 +1,22 @@
+# docker-compose.app.yml
+# Defines the application development environment.
+# Assumes the infra network is already running.
+# Start using: docker compose -f docker-compose.app.yml up --build
+
+version: '3.8'
+
+services:
+  dev-env:
+    build:
+      context: .
+      dockerfile: Dockerfile.txt
+    volumes:
+      - .:/app
+    networks:
+      - app_network_external # Connects to the existing external network
+    tty: true
+
+networks:
+  app_network_external: # References the existing network
+    name: my_infra_network # Must match the name defined in the infra file
+    external: true

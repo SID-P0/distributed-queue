@@ -1,0 +1,31 @@
+# Development environment with Java, Node.js, Git, Gradle
+FROM azul/zulu-openjdk:22
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    git \
+    wget \
+    unzip
+
+# Install Node.js (LTS version)
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
+
+# Install Gradle
+RUN wget https://services.gradle.org/distributions/gradle-8.6-bin.zip -O /tmp/gradle.zip && \
+    unzip /tmp/gradle.zip -d /opt && \
+    ln -s /opt/gradle-8.6/bin/gradle /usr/bin/gradle && \
+    rm /tmp/gradle.zip
+
+# Create non-root user
+RUN groupadd -r devgroup && useradd -r -g devgroup -u 1000 -m -s /bin/bash devuser
+USER devuser
+
+# Set working directory
+WORKDIR /app
+
+# Keep container running
+CMD ["tail", "-f", "/dev/null"]

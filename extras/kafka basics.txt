@@ -1,0 +1,14 @@
+kafka basics
+
+List
+docker compose exec kafka kafka-topics --bootstrap-server localhost:9092 --list
+
+Create
+docker compose exec kafka kafka-topics --bootstrap-server localhost:9092 --create --topic test-topic --partitions 1 --replication-factor 1
+
+Produce
+docker compose exec kafka kafka-console-producer --bootstrap-server localhost:9092 --topic test-topic
+
+
+Consume
+docker compose exec kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-topic --from-beginning
