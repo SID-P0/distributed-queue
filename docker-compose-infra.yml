@@ -65,4 +65,4 @@ volumes:
 networks:
   app_network: # Defines the network
     driver: bridge
-    name: my_infra_network # Gives the network a predictable name
+    name: my_infra_network
