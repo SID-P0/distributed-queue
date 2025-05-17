@@ -1,6 +1,9 @@
 **Running the project in local**
-1. docker compose -f docker-compose-dev.yml up --build
+1. docker compose -f docker-compose-dev.yml up -d
 2. docker compose -f docker-compose-infra.yml up -d (Ignore if you dont want to re-link and replicate all the infra to run it locally)
+
+To run both together
+1. docker-compose -p devenv -f docker-compose-infra.yml -f docker-compose-dev.yml up -d
 
 **IF YOU WANT TO RUN INFRA YOU MUST RUN DEV ENV IN ORDER TO LOCALLY SUPPORT NETWORK BRIDGE**
 
