@@ -8,7 +8,7 @@ To run both together
 
 Volume mount the local code to build and run the application
 1. docker-compose -p devenv -f docker-compose-dev.yml exec dev-env ./gradlew build
-2. docker-compose -p devenv -f docker-compose-dev.yml exec dev-env ./gradlew bootRun
+2. docker-compose -p devenv -f docker-compose-dev.yml exec dev-env ./gradlew bootRun -PappJvmArgs="-Dserver.port=9090 -Dspring.profiles.active=dockerdev"
 
 
 **IF YOU WANT TO RUN INFRA YOU MUST RUN DEV ENV IN ORDER TO LOCALLY SUPPORT NETWORK BRIDGE**
