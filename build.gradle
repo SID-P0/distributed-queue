@@ -2,7 +2,10 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.google.protobuf' version "0.9.4"
 }
+
+def protobufVersion = '3.25.3'
 
 group = 'com.backend'
 version = '0.0.1-SNAPSHOT'
@@ -26,11 +29,27 @@ bootRun {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.kafka:spring-kafka'
+	// proto's required
+//	implementation files('/Users/sid/Projects/shared-protos/build/libs/protos-0.0.2.jar')
+	implementation "com.google.protobuf:protobuf-java:3.25.3"
+	implementation "com.google.protobuf:protobuf-java-util:3.25.3"
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+// Configuration for the Protobuf plugin
+protobuf {
+	protoc {
+		// Download protoc compiler artifact from Maven Central
+		artifact = "com.google.protobuf:protoc:${protobufVersion}"
+	}
+	// No 'sourceSets' block needed here if using the default 'src/main/proto'
+	// and not generating gRPC or other special configurations.
+}
+
 
 tasks.named('test') {
 	useJUnitPlatform()

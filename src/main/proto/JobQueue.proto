@@ -1,0 +1,104 @@
+syntax = "proto3"; // Specifies the version of Protocol Buffers syntax
+
+package com.shared.protos; // Java package for generated classes
+
+// Option for Java: Generate separate files for each top-level message/enum
+option java_multiple_files = true;
+// Option for Java: Specifies the outer classname if java_multiple_files is false
+// option java_outer_classname = "JobProtos";
+
+option java_package = "com.shared.protosnomo"; // THIS IS CRITICAL for Java
+
+// Import for Timestamp (for date/time fields)
+import "google/protobuf/timestamp.proto";
+
+// --- Enums ---
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0; // Default value, good practice
+  NEW = 1;
+  IN_PROGRESS = 2;
+  AWAITING_ACTION = 3;
+  SUCCESS = 4;
+  FAILURE = 5;
+}
+
+enum JobType {
+  JOB_TYPE_UNSPECIFIED = 0;
+  EMAIL_JOB = 1;             // Renamed to avoid conflict with message name
+  DATA_POPULATION_JOB = 2;
+  PRIORITY_FLOW_JOB = 3;
+}
+
+enum TaskType {
+  TASK_TYPE_UNSPECIFIED = 0;
+  CREATE = 1;
+  UPDATE = 2;
+  DELETE = 3;
+  SEND = 4;
+  RECEIVE = 5;
+  OTHER_ACTION = 6; // Generic placeholder if needed
+}
+
+// A more specific status for tasks, distinct from JobStatus
+enum TaskExecutionStatus {
+  TASK_EXECUTION_STATUS_UNSPECIFIED = 0;
+  TASK_NEW = 1;
+  TASK_IN_PROGRESS = 2;
+  TASK_AWAITING_INPUT = 3; // Or TASK_AWAITING_DEPENDENCY
+  TASK_SUCCESS = 4;
+  TASK_FAILURE = 5;
+}
+
+
+// --- Messages ---
+
+message TaskMetadata {
+  TaskType task_type = 1;
+  string task_description = 2;
+  TaskExecutionStatus task_status = 3;
+  string task_last_modified_by = 4;
+  google.protobuf.Timestamp task_last_modified_time_stamp = 5;
+}
+
+message EmailPayload {
+  TaskMetadata task_metadata = 1;
+  string unique_mail_id = 2;
+  string sender_id = 3;
+  repeated string recipient_id = 4; // 'repeated' for lists/arrays
+  string title_heading = 5;
+  string message_body = 6;
+  google.protobuf.Timestamp mail_time_stamp = 7;
+}
+
+message PriorityFlowPayload {
+  TaskMetadata task_metadata = 1;
+  string prio_f_id = 2; // Assuming string ID, could be int64
+  int32 prio_f_rank = 3;
+  string prio_f_name = 4;
+}
+
+message DataPopulationPayload {
+  TaskMetadata task_metadata = 1;
+  string source_system = 2;
+  string target_entity = 3;
+  string filter_criteria = 4;
+}
+
+message Job {
+  string job_id = 1;
+  string job_name = 2;
+  JobStatus job_status = 3;
+  JobType job_type = 4; // Discriminator field to know which payload to expect
+  string job_description = 5;
+  string created_by = 6;
+  google.protobuf.Timestamp creation_time_stamp = 7;
+
+  // 'oneof' means only one of these fields can be set at a time.
+  // This represents the specific payload based on JobType.
+  oneof payload {
+    EmailPayload email_payload = 8;
+    PriorityFlowPayload priority_flow_payload = 9;
+    DataPopulationPayload data_population_payload = 10;
+  }
+}
