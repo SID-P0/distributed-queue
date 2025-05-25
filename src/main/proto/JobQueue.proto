@@ -7,7 +7,7 @@ option java_multiple_files = true;
 // Option for Java: Specifies the outer classname if java_multiple_files is false
 // option java_outer_classname = "JobProtos";
 
-option java_package = "com.shared.protosnomo"; // THIS IS CRITICAL for Java
+option java_package = "com.shared.protos"; // THIS IS CRITICAL for Java
 
 // Import for Timestamp (for date/time fields)
 import "google/protobuf/timestamp.proto";

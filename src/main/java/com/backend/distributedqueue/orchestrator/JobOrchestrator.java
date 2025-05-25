@@ -1,8 +1,8 @@
 package com.backend.distributedqueue.orchestrator;
 
-import com.shared.protosnomo.DataPopulationPayload;
-import com.shared.protosnomo.EmailPayload;
-import com.shared.protosnomo.Job;
+import com.shared.protos.DataPopulationPayload;
+import com.shared.protos.EmailPayload;
+import com.shared.protos.Job;
 
 public class JobOrchestrator {
 
