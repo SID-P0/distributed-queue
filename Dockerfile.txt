@@ -15,9 +15,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     npm install -g yarn
 
 # Install Gradle
-RUN wget https://services.gradle.org/distributions/gradle-8.6-bin.zip -O /tmp/gradle.zip && \
+RUN wget https://services.gradle.org/distributions/gradle-8.8-bin.zip -O /tmp/gradle.zip && \
     unzip /tmp/gradle.zip -d /opt && \
-    ln -s /opt/gradle-8.6/bin/gradle /usr/bin/gradle && \
+    ln -s /opt/gradle-8.8/bin/gradle /usr/bin/gradle && \
     rm /tmp/gradle.zip
 
 # Create non-root user
