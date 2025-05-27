@@ -4,7 +4,8 @@ import com.shared.protos.Job;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+
+@SpringBootApplication()
 public class DistributedQueueApplication {
     public static void main(String[] args) {
         SpringApplication.run(DistributedQueueApplication.class, args);
