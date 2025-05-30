@@ -1,4 +1,4 @@
-package com.backend.distributedqueue.exeception;
+package com.backend.distributedqueue.exception;
 
 public class TaskActivityException extends RuntimeException{
     public TaskActivityException(String message) {

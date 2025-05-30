@@ -1,6 +1,5 @@
-package com.backend.distributedqueue.exeception;
+package com.backend.distributedqueue.exception;
 
-import com.backend.distributedqueue.constants.JobConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

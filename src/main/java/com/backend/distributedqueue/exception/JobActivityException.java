@@ -1,4 +1,4 @@
-package com.backend.distributedqueue.exeception;
+package com.backend.distributedqueue.exception;
 
 public class JobActivityException extends RuntimeException {
     public JobActivityException(String message) {

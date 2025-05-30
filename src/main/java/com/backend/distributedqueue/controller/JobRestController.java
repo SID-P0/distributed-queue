@@ -1,6 +1,5 @@
 package com.backend.distributedqueue.controller;
 
-import com.backend.distributedqueue.exeception.GlobalExceptionHandler;
 import com.backend.distributedqueue.handler.JobRequestHandler;
 import com.shared.protos.Job;
 import org.slf4j.Logger;

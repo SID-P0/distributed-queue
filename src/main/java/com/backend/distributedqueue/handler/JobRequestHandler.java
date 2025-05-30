@@ -10,7 +10,7 @@ public class JobRequestHandler {
     @Autowired
     private JobOrchestrator jobOrchestrator;
 
-    public void handleJob(Job job){
+    public void handleJob(Job job) {
 
     }
 }
