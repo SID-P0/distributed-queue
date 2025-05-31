@@ -1,6 +1,5 @@
 # docker-compose.app.yml
 # Defines the application development environment.
-# Assumes the infra network is already running.
 # Start using: docker compose -f docker-compose.app.yml up --build
 
 version: '3.8'
