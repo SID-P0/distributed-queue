@@ -58,11 +58,11 @@ public class JobRestController {
                     description = "Job object to be created (serialized binary Protobuf)",
                     required = true,
                     content = @Content(
-                            mediaType = "application/x-protobuf", // Matches the 'consumes' type
+                            mediaType = "application/x-protobuf",
                             schema = @Schema(type = "string", format = "binary")
                     )
             )
-            @RequestBody Job job) { // Spring will use a Protobuf HttpMessageConverter here
+            @RequestBody Job job) {
         log.info("Received request to create job with ID: {}", job.getJobId());
         jobRequestHandler.handleJob(job);
         log.info("Job with ID: {} processed and created successfully.", job.getJobId());

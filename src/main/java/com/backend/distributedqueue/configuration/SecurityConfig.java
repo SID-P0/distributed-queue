@@ -1,4 +1,4 @@
-package com.backend.distributedqueue.config; // Or your preferred configuration package
+package com.backend.distributedqueue.configuration; // Or your preferred configuration package
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +11,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     private static final String[] SWAGGER_WHITELIST = {
             // -- Swagger UI v2
             "/v2/api-docs",
@@ -42,4 +41,5 @@ public class SecurityConfig {
         // you'll need a proper CSRF configuration.
         return http.build();
     }
+
 }
