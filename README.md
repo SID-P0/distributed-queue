@@ -5,7 +5,6 @@
 To run both together
 1. docker compose -p distributedqueue -f docker-compose-infra.yml -f docker-compose-dev.yml up -d
 
-
 Volume mount the local code to build and run the application
 1. docker compose -p devenv -f docker-compose-dev.yml exec dev-env ./gradlew build
 2. docker compose -p devenv -f docker-compose-dev.yml exec dev-env ./gradlew bootRun -PappJvmArgs="-Dserver.port=9090 -Dspring.profiles.active=dockerdev"

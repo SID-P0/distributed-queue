@@ -54,11 +54,12 @@ enum TaskExecutionStatus {
 // --- Messages ---
 
 message TaskMetadata {
-  TaskType task_type = 1;
-  string task_description = 2;
-  TaskExecutionStatus task_status = 3;
-  string task_last_modified_by = 4;
-  google.protobuf.Timestamp task_last_modified_time_stamp = 5;
+  string task_id = 1;
+  TaskType task_type = 2;
+  string task_description = 3;
+  TaskExecutionStatus task_status = 4;
+  string task_last_modified_by = 5;
+  google.protobuf.Timestamp task_last_modified_time_stamp = 6;
 }
 
 message EmailPayload {
