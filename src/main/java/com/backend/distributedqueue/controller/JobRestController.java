@@ -25,12 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class JobRestController {
     private static final Logger log = LoggerFactory.getLogger(JobRestController.class);
 
-    private final JobRequestHandler jobRequestHandler;
-
     @Autowired
-    public JobRestController(JobRequestHandler jobRequestHandler) {
-        this.jobRequestHandler = jobRequestHandler;
-    }
+    private JobRequestHandler jobRequestHandler;
 
     @Operation(summary = "Health Check", description = "Checks the health of the application.")
     @ApiResponses(value = {
