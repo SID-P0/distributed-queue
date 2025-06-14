@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Tag(name = "Job Management", description = "APIs for managing and monitoring jobs")
+@Tag(name = "Job Management", description = "API's for managing and monitoring jobs")
 public class JobRestController {
     private static final Logger log = LoggerFactory.getLogger(JobRestController.class);
 
