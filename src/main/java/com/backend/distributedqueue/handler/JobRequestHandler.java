@@ -15,7 +15,7 @@ public class JobRequestHandler {
     public void handleJob(Job job) {
         try {
             validateJob(job);
-            jobOrchestrator.processJob(job);
+            jobOrchestrator.createJob(job);
         }
         catch (JobActivityException jobActivityException) {
             throw jobActivityException;
