@@ -4,6 +4,7 @@ import com.backend.distributedqueue.exception.JobActivityException;
 import com.backend.distributedqueue.exception.TaskActivityException;
 import com.backend.distributedqueue.orchestrator.JobOrchestrator;
 import com.shared.protos.Job;
+import com.shared.protos.JobAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +13,10 @@ public class JobRequestHandler {
     @Autowired
     private JobOrchestrator jobOrchestrator;
 
-    public void handleJob(Job job) {
+    public void handleJob(Job job, JobAction jobAction) {
         try {
             validateJob(job);
-            jobOrchestrator.createJob(job);
+            jobOrchestrator.performJobAction(job, jobAction);
         }
         catch (JobActivityException jobActivityException) {
             throw jobActivityException;

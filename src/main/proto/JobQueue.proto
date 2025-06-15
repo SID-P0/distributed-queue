@@ -14,12 +14,14 @@ import "google/protobuf/timestamp.proto";
 
 // --- Enums ---
 
-enum JobStatus {
+enum JobAction {
   JOB_STATUS_UNSPECIFIED = 0; // Default value, good practice
   JOB_NEW = 1;
-  JOB_AWAITING_ACTION = 2;
-  JOB_COMPLETED = 3;
-  JOB_FAILURE = 4;
+  JOB_UPDATE = 2;
+  JOB_DELETE = 3;
+  JOB_AWAITING_ACTION = 4;
+  JOB_COMPLETED = 5;
+  JOB_FAILURE = 6;
 }
 
 enum JobType {
@@ -29,23 +31,16 @@ enum JobType {
   PRIORITY_FLOW_JOB = 3;
 }
 
-enum TaskType {
-  TASK_TYPE_UNSPECIFIED = 0;
-  CREATE = 1;
-  UPDATE = 2;
-  DELETE = 3;
-  SEND = 4;
-  RECEIVE = 5;
-  OTHER_ACTION = 6; // Generic placeholder if needed
-}
 
 // A more specific status for tasks, distinct from JobStatus
-enum TaskExecutionStatus {
+enum TaskAction {
   TASK_EXECUTION_STATUS_UNSPECIFIED = 0;
   TASK_NEW = 1;
-  TASK_AWAITING_INPUT = 2; // Or TASK_AWAITING_DEPENDENCY
-  TASK_SUCCESS = 3;
-  TASK_FAILURE = 4;
+  TASK_UPDATE = 2;
+  TASK_DELETE = 3;
+  TASK_AWAITING_INPUT = 4; // Or TASK_AWAITING_DEPENDENCY
+  TASK_SUCCESS = 5;
+  TASK_FAILURE = 6;
 }
 
 
@@ -53,11 +48,10 @@ enum TaskExecutionStatus {
 
 message TaskMetadata {
   string task_id = 1;
-  TaskType task_type = 2;
+  TaskAction task_action = 2;
   string task_description = 3;
-  TaskExecutionStatus task_status = 4;
-  string task_last_modified_by = 5;
-  google.protobuf.Timestamp task_last_modified_time_stamp = 6;
+  string task_last_modified_by = 4;
+  google.protobuf.Timestamp task_last_modified_time_stamp = 5;
 }
 
 message EmailPayload {
@@ -87,7 +81,7 @@ message DataPopulationPayload {
 message Job {
   string job_id = 1;
   string job_name = 2;
-  JobStatus job_status = 3;
+  JobAction job_action = 3;
   JobType job_type = 4; // Discriminator field to know which payload to expect
   string job_description = 5;
   string created_by = 6;

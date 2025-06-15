@@ -2,6 +2,7 @@ package com.backend.distributedqueue.controller;
 
 import com.backend.distributedqueue.handler.JobRequestHandler;
 import com.shared.protos.Job;
+import com.shared.protos.JobAction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -58,9 +59,9 @@ public class JobRestController {
                             schema = @Schema(type = "string", format = "binary")
                     )
             )
-            @RequestBody Job job) {
+            @RequestBody Job job, JobAction jobAction) {
         log.info("Received request to create job with ID: {}", job.getJobId());
-        jobRequestHandler.handleJob(job);
+        jobRequestHandler.handleJob(job, jobAction);
         log.info("Job with ID: {} processed and created successfully.", job.getJobId());
         return ResponseEntity.status(HttpStatus.CREATED).body("Job created successfully with ID: " + job.getJobId());
     }
