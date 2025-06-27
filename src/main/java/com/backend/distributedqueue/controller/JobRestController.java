@@ -1,6 +1,6 @@
 package com.backend.distributedqueue.controller;
 
-import com.backend.distributedqueue.handler.JobRequestHandler;
+import com.backend.distributedqueue.validation.JobRequestValidation;
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +27,7 @@ public class JobRestController {
     private static final Logger log = LoggerFactory.getLogger(JobRestController.class);
 
     @Autowired
-    private JobRequestHandler jobRequestHandler;
+    private JobRequestValidation jobRequestValidation;
 
     @Operation(summary = "Health Check", description = "Checks the health of the application.")
     @ApiResponses(value = {
@@ -48,7 +48,7 @@ public class JobRestController {
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping(value = "/handleJob", consumes = "application/x-protobuf", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/validateAndPublishJob", consumes = "application/x-protobuf", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> submitJob(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Job object to be created (serialized binary Protobuf)",
@@ -59,9 +59,8 @@ public class JobRestController {
                     )
             )
             @RequestBody Job job, JobAction jobAction) {
-        log.info("Received a request for job with action : {} by user : {}", job.getCreatedBy(), job.getJobAction());
-        jobRequestHandler.handleJob(job, jobAction);
-        log.info("Job with ID: {} processed successfully.", job.getJobId());
+        log.info("Received a request for job with action : {} by user : {}", job.getJobAction(), job.getCreatedBy());
+        jobRequestValidation.validateAndPublishJob(job, jobAction);
         return ResponseEntity.status(HttpStatus.OK).body("Job action was successfully performed for ID : " + job.getJobId());
     }
 }
