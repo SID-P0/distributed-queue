@@ -1,10 +1,8 @@
 package com.backend.distributedqueue.orchestrator;
 
-import com.backend.distributedqueue.exception.JobActivityException; // Unused, but present in original
+import com.backend.distributedqueue.exception.JobActivityException;
 import com.backend.distributedqueue.factory.JobProcessor;
 import com.backend.distributedqueue.factory.JobProcessorFactory;
-import com.shared.protos.DataPopulationPayload; // Unused, but present in original
-import com.shared.protos.EmailPayload; // Unused, but present in original
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,6 @@ public class JobOrchestrator {
     public JobOrchestrator(JobProcessorFactory jobProcessorFactory) {
         this.jobProcessorFactory = jobProcessorFactory;
     }
-
     /**
      * Performs the specified action (CREATE, UPDATE, DELETE) on the job
      * using the appropriate processor.
@@ -42,13 +39,12 @@ public class JobOrchestrator {
                 processor.deleteJob(job);
                 break;
             default:
-                // Or throw a more specific custom exception
-                throw new IllegalArgumentException("Unsupported job action: " + action);
+                throw new JobActivityException("Unsupported job action: " + action);
         }
         publishAndPersistJob(job);
     }
 
     public void publishAndPersistJob(Job job) {
-        // Current empty implementation
+
     }
 }

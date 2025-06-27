@@ -31,21 +31,21 @@ enum JobType {
   PRIORITY_FLOW_JOB = 3;
 }
 
-
 // A more specific status for tasks, distinct from JobStatus
 enum TaskAction {
   TASK_EXECUTION_STATUS_UNSPECIFIED = 0;
-  TASK_NEW = 1;
+  TASK_CREATE = 1;
   TASK_UPDATE = 2;
   TASK_DELETE = 3;
-  TASK_AWAITING_INPUT = 4; // Or TASK_AWAITING_DEPENDENCY
-  TASK_SUCCESS = 5;
-  TASK_FAILURE = 6;
+  TASK_SEND = 4;
+  TASK_RECEIVE = 5;
+  TASK_AWAITING_INPUT = 6; // Or TASK_AWAITING_DEPENDENCY
+  TASK_SUCCESS = 7;
+  TASK_FAILURE = 8;
 }
 
 
 // --- Messages ---
-
 message TaskMetadata {
   string task_id = 1;
   TaskAction task_action = 2;
