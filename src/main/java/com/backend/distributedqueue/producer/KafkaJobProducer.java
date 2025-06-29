@@ -28,7 +28,7 @@ public class KafkaJobProducer {
      * It acts as an entry point for incoming job requests from UI/Cron Jobs.
      */
     @KafkaListener(
-            topics = "${kafka.topic.job-request}",
+            topics = "${kafka.topic.job-actions}",
             groupId = "job-processor-group",
             containerFactory = "kafkaListenerContainerFactory"
     )
@@ -40,7 +40,7 @@ public class KafkaJobProducer {
             logger.info("Successfully published new job event with ID : {}", job.getJobId());
         } catch (Exception e) {
             logger.error("Failed to publish job {} due to an exception : ", job.getJobId(), e);
-            //TODO Push to retry queue/ DLQ
+            //TODO Push to retry queue/DLQ
         }
     }
 
@@ -61,7 +61,7 @@ public class KafkaJobProducer {
             logger.info("Successfully published new job event with ID : {}", job.getJobId());
         } catch (Exception e) {
             logger.error("Failed to publish job {} due to an exception : ", job.getJobId(), e);
-            //TODO Push to retry queue/ DLQ
+            //TODO Push to retry queue/DLQ
         }
     }
 

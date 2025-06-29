@@ -41,14 +41,15 @@ public class JobRestController {
 
     @Operation(summary = "Submit a new Job", description = "Submits a new job to the distributed queue for processing (expects binary Protobuf).")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Job action was successfully performed",
+            @ApiResponse(responseCode = "200", description = "Job action successfully performed",
                     content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(implementation = String.class))),
+            // Consider defining a proper ErrorResponse DTO for 400 and 500 errors
             @ApiResponse(responseCode = "400", description = "Invalid job payload provided or malformed Protobuf",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping(value = "/validateAndPublishJob", consumes = "application/x-protobuf", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/handleJob", consumes = "application/x-protobuf", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> submitJob(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Job object to be created (serialized binary Protobuf)",
@@ -59,8 +60,9 @@ public class JobRestController {
                     )
             )
             @RequestBody Job job, JobAction jobAction) {
-        log.info("Received a request for job with action : {} by user : {}", job.getJobAction(), job.getCreatedBy());
+        log.info("Received request to create job with ID: {}", job.getJobId());
         jobRequestValidation.validateAndPublishJob(job, jobAction);
-        return ResponseEntity.status(HttpStatus.OK).body("Job action was successfully performed for ID : " + job.getJobId());
+        log.info("Job with ID: {} processed and created successfully.", job.getJobId());
+        return ResponseEntity.status(HttpStatus.CREATED).body("Job created successfully with ID: " + job.getJobId());
     }
 }
