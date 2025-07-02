@@ -40,7 +40,7 @@ public class JobOrchestrator {
      */
     @KafkaListener(
             topics = "${kafka.topic.job-actions}", // Listen to the job-actions topic
-            groupId = "job-orchestrator-group",    // Unique consumer group for the orchestrator
+            groupId = "job-processor-group",    // Unique consumer group for the orchestrator
             containerFactory = "kafkaListenerContainerFactory" // Re-use the configured factory
     )
     public void listenForJobActions(Job job) {

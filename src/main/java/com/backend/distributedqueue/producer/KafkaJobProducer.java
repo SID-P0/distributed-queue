@@ -27,11 +27,6 @@ public class KafkaJobProducer {
      * This listener belongs to the 'job-processor-group'.
      * It acts as an entry point for incoming job requests from UI/Cron Jobs.
      */
-    @KafkaListener(
-            topics = "${kafka.topic.job-actions}",
-            groupId = "job-processor-group",
-            containerFactory = "kafkaListenerContainerFactory"
-    )
     public void publishingJobRequestsForProcessing(Job job) {
         logger.info("Received Job request : {}", job);
         try {
@@ -48,11 +43,6 @@ public class KafkaJobProducer {
      * This listener belongs to the 'job-status-update-group'.
      * It acts as an entry point for processed job requests and sends the business enriched response back to UI/Cron Jobs.
      */
-    @KafkaListener(
-            topics = "${kafka.topic.job-status-updates}",
-            groupId = "job-status-update-group",
-            containerFactory = "kafkaListenerContainerFactory"
-    )
     public void publishingJobResponsesForSSE(Job job) {
         logger.info("Received Job request to publish as a SSE : {}", job);
         try {
