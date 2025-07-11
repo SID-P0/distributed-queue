@@ -11,8 +11,8 @@ Volume mount the local code to build and run the application
 
  If you are using a remote dev container
 1. Figure out the port for postgres connection which
-   docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' distributedqueue-postgres-1
-2. Change kafka bootstrap server to kafka:9093
+   docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ####-postgres-1 (app-name in infra.yml)
+2. Change kafka bootstrap server to kafka:#### (broker host in infra.yml)
 
 **IF YOU WANT TO RUN INFRA YOU MUST RUN DEV ENV IN ORDER TO LOCALLY SUPPORT NETWORK BRIDGE**
 
