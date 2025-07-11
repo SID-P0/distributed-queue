@@ -5,25 +5,31 @@ import com.shared.protos.EmailPayload;
 import com.shared.protos.Job;
 import org.springframework.stereotype.Component;
 
+/**
+ * TODO: This processor should be its own separate external app in itself within this monorepo in order to scale this functionality.
+ */
 @Component
 public class EmailProcessor implements JobProcessor {
 
     @Override
-    public void createJob(Job job) {
+    public Job createJob(Job job) {
         EmailPayload emailPayload = job.getEmailPayload();
         System.out.println("Processing Email Job via Factory: " + emailPayload.getUniqueMailId());
+        return job;
     }
 
     @Override
-    public void updateJob(Job job) {
+    public Job updateJob(Job job) {
         EmailPayload emailPayload = job.getEmailPayload();
         System.out.println("Updating Email Job via Factory: " + emailPayload.getUniqueMailId());
+        return job;
     }
 
     @Override
-    public void deleteJob(Job job) {
+    public Job deleteJob(Job job) {
         EmailPayload emailPayload = job.getEmailPayload();
         System.out.println("Deleting Email Job via Factory: " + emailPayload.getUniqueMailId());
+        return job;
     }
 
     @Override

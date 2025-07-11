@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ *
+ */
 @Component
 public class JobOrchestrator {
 
@@ -31,7 +34,6 @@ public class JobOrchestrator {
      * Kafka Listener that consumes job action events from the 'job-actions' topic.
      * This method acts as the entry point for processing job-related commands
      * within the orchestrator.
-     * <p>
      * Assumes the 'Job' Protobuf message now includes a 'JobAction' field.
      * If not, a wrapper Protobuf message (e.g., JobActionEvent) would be needed
      * to encapsulate both the Job and the JobAction.
@@ -40,7 +42,7 @@ public class JobOrchestrator {
      */
     @KafkaListener(
             topics = "${kafka.topic.job-actions}", // Listen to the job-actions topic
-            groupId = "job-processor-group",    // Unique consumer group for the orchestrator
+            groupId = "job-processor-group",
             containerFactory = "kafkaListenerContainerFactory" // Re-use the configured factory
     )
     public void listenForJobActions(Job job) {
@@ -75,22 +77,16 @@ public class JobOrchestrator {
             throw new JobActivityException("Job payload is not set for Job ID: " + job.getJobId());
         }
         JobProcessor processor = jobProcessorFactory.getProcessor(job.getPayloadCase());
+        Job updatedJob = switch (action) {
+            case JOB_NEW -> processor.createJob(job);
+            case JOB_UPDATE -> processor.updateJob(job);
+            case JOB_DELETE -> processor.deleteJob(job);
+            default ->
+                    throw new JobActivityException("Unsupported job action: " + action + " for Job ID: " + job.getJobId());
+        };
 
-        switch (action) {
-            case JOB_NEW:
-                processor.createJob(job);
-                break;
-            case JOB_UPDATE:
-                processor.updateJob(job);
-                break;
-            case JOB_DELETE:
-                processor.deleteJob(job);
-                break;
-            default:
-                throw new JobActivityException("Unsupported job action: " + action + " for Job ID: " + job.getJobId());
-        }
         // After performing the action, publish the updated job state and persist it.
         // The 'job' object here should reflect any changes made by the processor.
-        kafkaJobProducer.publishingJobResponsesForSSE(job);
+        kafkaJobProducer.publishingJobResponsesForSSE(updatedJob);
     }
 }
