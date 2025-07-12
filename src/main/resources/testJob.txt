@@ -1,0 +1,10 @@
+job_name: "PrioFlow test"
+job_action: JOB_NEW
+job_type: PRIORITY_FLOW_JOB
+created_by: "sidheshs"
+
+priority_flow_payload {
+  prio_f_id: "PF-MARKETING-Q4-2024"
+  prio_f_rank: 1
+  prio_f_name: "Q4-Marketing-Campaign-Flow"
+}

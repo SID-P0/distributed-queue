@@ -16,7 +16,7 @@ import java.util.UUID;
 public class JobRequestValidation {
 
     @Autowired
-    KafkaJobProducer kafkaJobProducer;
+    private KafkaJobProducer kafkaJobProducer;
 
     public void validateAndPublishJob(Job job, JobAction jobAction) {
         try {
@@ -25,7 +25,7 @@ public class JobRequestValidation {
                 job = assignUniqueJobKeyId(job);
             }
             validateJob(job);
-            kafkaJobProducer.publishingJobRequestsForProcessing(job);
+            kafkaJobProducer.publishJobForProcessing(job);
         }
         catch (JobActivityException jobActivityException) {
             throw new JobActivityException("Error processing job " + job.getJobId() + ": " + jobActivityException.getMessage(), jobActivityException);
@@ -36,12 +36,12 @@ public class JobRequestValidation {
     }
 
     public Job assignUniqueJobKeyId(Job job) {
-        return job.toBuilder().setJobId(UUID.randomUUID().toString()).build();
+        return job.toBuilder().setJobId("JOB-"+UUID.randomUUID().toString()).build();
     }
 
     public void validateJob(Job job) {
         if (job == null || job.getJobId().isEmpty() || job.getJobAction() == JobAction.JOB_STATUS_UNSPECIFIED || job.getCreatedBy().isEmpty()) {
-            throw new JobActivityException("Job creation was not successful, missing required fields : {}. \n Please contact the admin.", job);
+            throw new JobActivityException("Job creation was not successful, missing required fields : {}. \n Please contact the admin.");
         }
     }
 }

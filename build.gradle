@@ -1,70 +1,92 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.3.0' // Changed to a stable GA version
-	id 'io.spring.dependency-management' version '1.1.5' // Aligned with Spring Boot 3.3.0
-	id 'com.google.protobuf' version "0.9.4"
+	id 'org.springframework.boot' version '3.3.0'
+	id 'io.spring.dependency-management' version '1.1.5'
+	id 'com.google.protobuf' version '0.9.4'
 }
-
-def protobufVersion = '3.25.3'
 
 group = 'com.backend'
 version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(22)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
+}
+
+// Centralize dependency versions for easy updates
+ext {
+	protobufVersion = '3.25.3'
+	springdocVersion = '2.5.0'
+	confluentVersion = '7.6.1'
 }
 
 repositories {
 	mavenCentral()
+	maven {
+		url "https://packages.confluent.io/maven/"
+	}
 }
 
-bootRun {
-	if (project.hasProperty('appJvmArgs')) {
-		jvmArgs project.appJvmArgs.split('\\s+') // Split by space to get individual args
+// Use BOM to ensure compatible springdoc dependencies
+dependencyManagement {
+	imports {
+		mavenBom "org.springdoc:springdoc-openapi:${springdocVersion}"
 	}
 }
 
 dependencies {
-	// Spring Boot Starters
+	// --- Spring Boot Core ---
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-security' // Kept one instance
-
-	// --- Data Persistence ---
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'    // For PostgreSQL with JPA/Hibernate
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis' // For Redis
-	runtimeOnly 'org.postgresql:postgresql'
-
-	// Spring Kafka
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.kafka:spring-kafka'
 
-	// Protobuf
-	// implementation files('../Projects/shared-protos/build/libs/protos-0.0.2.jar') // Keep commented if not actively using this local jar
+	// --- Data Persistence ---
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// --- Protobuf & Kafka Serialization ---
 	implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
 	implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+//	implementation "io.confluent:kafka-protobuf-serializer:${confluentVersion}"
 
-	// SpringDoc OpenAPI (Swagger)
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0' // This version is generally fine for Spring Boot 3.x
+	// --- Swagger / OpenAPI ---
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
 
-	// Test Dependencies
+	// --- Developer Tools ---
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// --- Testing ---
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+configurations.all {
+	resolutionStrategy.eachDependency { details ->
+		if (details.requested.group == 'io.swagger.core.v3' &&
+				details.requested.name == 'swagger-annotations') {
+			details.useVersion '2.2.20'
+		}
+	}
+}
+
 // Configuration for the Protobuf plugin
 protobuf {
 	protoc {
-		// Download protoc compiler artifact from Maven Central
 		artifact = "com.google.protobuf:protoc:${protobufVersion}"
 	}
-	// No 'sourceSets' block needed here if using the default 'src/main/proto'
-	// and not generating gRPC or other special configurations.
 }
-
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+bootRun {
+	if (project.hasProperty('appJvmArgs')) {
+		jvmArgs project.appJvmArgs.split('\\s+')
+	}
 }

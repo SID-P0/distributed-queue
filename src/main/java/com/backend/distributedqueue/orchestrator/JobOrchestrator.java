@@ -54,11 +54,11 @@ public class JobOrchestrator {
         } catch (JobActivityException e) {
             logger.error("JobActivityException while processing action {} for Job ID {}: {}", job.getJobAction(), job.getJobId(), e.getMessage(), e);
             Job updatedJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).setJobDescription(e.getMessage()).build();
-            kafkaJobProducer.publishingJobResponsesForSSE(updatedJob);
+            kafkaJobProducer.publishJobStatusUpdate(updatedJob);
         } catch (Exception e) {
             logger.error("Unexpected exception while processing action {} for Job ID {}: {}", job.getJobAction(), job.getJobId(), e.getMessage(), e);
             Job updatedJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).build();
-            kafkaJobProducer.publishingJobResponsesForSSE(updatedJob);
+            kafkaJobProducer.publishJobStatusUpdate(updatedJob);
         }
     }
 
@@ -87,6 +87,6 @@ public class JobOrchestrator {
 
         // After performing the action, publish the updated job state and persist it.
         // The 'job' object here should reflect any changes made by the processor.
-        kafkaJobProducer.publishingJobResponsesForSSE(updatedJob);
+        kafkaJobProducer.publishJobStatusUpdate(updatedJob);
     }
 }

@@ -1,58 +1,58 @@
 package com.backend.distributedqueue.producer;
 
 import com.shared.protos.Job;
+import lombok.RequiredArgsConstructor; // Import for constructor injection
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value; // Import Value for injecting properties
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate; // Import KafkaTemplate for sending messages
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor // Use Lombok to create the constructor for you
 public class KafkaJobProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaJobProducer.class);
 
-    @Autowired
-    private KafkaTemplate<String, Job> kafkaTemplate;
+    // Dependencies are now final and injected via the constructor
+    private final KafkaTemplate<String, Job> kafkaTemplate;
 
     @Value("${kafka.topic.job-actions}")
     private String jobActionsTopic;
 
     @Value("${kafka.topic.job-status-updates}")
-    private String jobStatusUpdates;
+    private String jobStatusUpdatesTopic; // Renamed for clarity
 
     /**
-     * This listener belongs to the 'job-processor-group'.
-     * It acts as an entry point for incoming job requests from UI/Cron Jobs.
+     * Publishes a new or updated job to the processing topic.
+     * @param job The job object enriched by the backend.
      */
-    public void publishingJobRequestsForProcessing(Job job) {
-        logger.info("Received Job request : {}", job);
+    public void publishJobForProcessing(Job job) {
+        logger.info("Preparing to publish job with ID {} to topic '{}'", job.getJobId(), jobActionsTopic);
         try {
-            logger.info("Publishing event with Job ID {} to topic {}", job.getJobId(), jobActionsTopic);
+            // The key is the job_id, which ensures all events for the same job go to the same partition.
             kafkaTemplate.send(jobActionsTopic, job.getJobId(), job);
-            logger.info("Successfully published new job event with ID : {}", job.getJobId());
+            logger.info("Successfully published job event for ID: {}", job.getJobId());
         } catch (Exception e) {
-            logger.error("Failed to publish job {} due to an exception : ", job.getJobId(), e);
-            //TODO Push to retry queue/DLQ
+            // CORRECTED LOGGING: The exception 'e' is the last argument.
+            logger.error("Failed to publish job with ID {} to topic '{}'", job.getJobId(), jobActionsTopic, e);
+            // TODO: Implement a robust retry/DLQ (Dead Letter Queue) strategy here.
         }
     }
 
     /**
-     * This listener belongs to the 'job-status-update-group'.
-     * It acts as an entry point for processed job requests and sends the business enriched response back to UI/Cron Jobs.
+     * Publishes the final status of a processed job for consumers like SSE emitters.
+     * @param job The processed job with its final status.
      */
-    public void publishingJobResponsesForSSE(Job job) {
-        logger.info("Received Job request to publish as a SSE : {}", job);
+    public void publishJobStatusUpdate(Job job) {
+        logger.info("Preparing to publish status update for job ID {} to topic '{}'", job.getJobId(), jobStatusUpdatesTopic);
         try {
-            logger.info("Publishing event with Job ID {} to topic {}", job.getJobId(), jobStatusUpdates);
-            kafkaTemplate.send(jobStatusUpdates, job.getJobId(), job);
-            logger.info("Successfully published new job event with ID : {}", job.getJobId());
+            kafkaTemplate.send(jobStatusUpdatesTopic, job.getJobId(), job);
+            logger.info("Successfully published status update for job ID: {}", job.getJobId());
         } catch (Exception e) {
-            logger.error("Failed to publish job {} due to an exception : ", job.getJobId(), e);
-            //TODO Push to retry queue/DLQ
+            // CORRECTED LOGGING
+            logger.error("Failed to publish status update for job ID {} to topic '{}'", job.getJobId(), jobStatusUpdatesTopic, e);
+            // TODO: Implement a robust retry/DLQ strategy here.
         }
     }
-
 }
