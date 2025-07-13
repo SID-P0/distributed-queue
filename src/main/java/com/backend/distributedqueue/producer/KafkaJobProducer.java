@@ -1,5 +1,6 @@
 package com.backend.distributedqueue.producer;
 
+import com.backend.distributedqueue.exception.JobActivityException;
 import com.shared.protos.Job;
 import lombok.RequiredArgsConstructor; // Import for constructor injection
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ public class KafkaJobProducer {
         } catch (Exception e) {
             // CORRECTED LOGGING: The exception 'e' is the last argument.
             logger.error("Failed to publish job with ID {} to topic '{}'", job.getJobId(), jobActionsTopic, e);
+            throw new JobActivityException("Failed to publish job event");
             // TODO: Implement a robust retry/DLQ (Dead Letter Queue) strategy here.
         }
     }

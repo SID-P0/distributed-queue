@@ -36,7 +36,7 @@ public class JobRequestValidation {
     }
 
     public Job assignUniqueJobKeyId(Job job) {
-        return job.toBuilder().setJobId("JOB-"+UUID.randomUUID().toString()).build();
+        return job.toBuilder().setJobId(UUID.randomUUID().toString()).build();
     }
 
     public void validateJob(Job job) {

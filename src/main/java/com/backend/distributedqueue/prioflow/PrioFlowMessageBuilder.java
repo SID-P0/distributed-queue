@@ -33,7 +33,7 @@ public class PrioFlowMessageBuilder {
 
         // 1. Build the innermost TaskMetadata
         TaskMetadata taskMetadata = TaskMetadata.newBuilder()
-                .setTaskId("TASK"+UUID.randomUUID().toString()) // Assign a unique ID for the task
+                .setTaskId(UUID.randomUUID().toString()) // Assign a unique ID for the task
                 .setTaskAction(TaskAction.TASK_CREATE)   // Set the action for the task
                 .setTaskDescription("")
                 .setTaskLastModifiedBy(createdBy)
