@@ -50,13 +50,8 @@ public class KafkaConfig {
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaProtobufDeserializer.class);
-        // Correctly configure the consumer to use Schema Registry
         configProps.put("schema.registry.url", schemaRegistryUrl);
-//        configProps.put("specific.protobuf.reader", "true");
-        // --- CRITICAL FIX: This conflicting line has been removed. ---
-        // The deserializer now gets the schema from the registry, which is the correct
-        // and more robust approach for a decoupled, evolvable system.
-         configProps.put("specific.protobuf.value.type", com.shared.protos.Job.class.getName());
+        configProps.put("specific.protobuf.value.type", com.shared.protos.Job.class.getName());
 
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
