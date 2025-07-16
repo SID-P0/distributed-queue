@@ -1,28 +1,20 @@
 package com.backend.distributedqueue.prioflow.service;
 
-import com.backend.distributedqueue.factory.TaskProcessor;
-import com.backend.distributedqueue.prioflow.dao.PrioFlowDao;
+import com.backend.distributedqueue.exception.JobActivityException;
 import com.google.protobuf.Timestamp;
-import com.shared.protos.Job;
-import com.shared.protos.PriorityFlowPayload;
-import com.shared.protos.TaskAction;
-import com.shared.protos.TaskMetadata;
+import com.shared.protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
-public class PrioFlowService implements TaskProcessor {
-
+public class PrioFlowService {
 
     private static final Logger log = LoggerFactory.getLogger(PrioFlowService.class);
-    private final PrioFlowDao prioFlowDao; // Inject the DAO
 
-    public PrioFlowService(PrioFlowDao prioFlowDao) {
-        this.prioFlowDao = prioFlowDao;
-    }
     /**
      * TODO : Introduce this feature later.
      * Atomically claims the best available priority rank from a shared pool in Redis.
@@ -50,78 +42,47 @@ public class PrioFlowService implements TaskProcessor {
     /**
      * Processes a 'TASK_CREATE' action for a Priority Flow job.
      * This method now correctly extracts data from the incoming job, delegates
-     * persistence to the DAO, and returns a job object indicating the outcome.
+     * business logic, and returns a task object indicating the outcome.
      *
-     * @param job The fully-formed Job object with a PriorityFlowPayload.
-     * @return A new Job object with an updated task status (e.g., TASK_SUCCESS or TASK_FAILURE).
+     * @param task      The Task containing a PriorityFlowPayload.
+     * @param jobId     The parent Job ID for logging and context.
+     * @param createdBy The user who created the job, for auditing.
+     * @return An updated Task reflecting the outcome (SUCCESS or FAILURE).
      */
-    @Override
-    public Job createTask(Job job) {
-        log.info("Executing CREATE task for PrioFlow Job ID: {}", job.getJobId());
-        // Extract payload for logging and response building
-        PriorityFlowPayload payload = job.getPriorityFlowPayload();
-
-        Instant now = Instant.now();
-        Timestamp timestamp = Timestamp.newBuilder()
-                .setSeconds(now.getEpochSecond())
-                .setNanos(now.getNano())
-                .build();
+    public Task createTask(Task task, String jobId, String createdBy) {
+        log.info("Executing CREATE task for PrioFlow with Job ID: {}", jobId);
+        PriorityFlowPayload payload = task.getPriorityFlowPayload();
 
         try {
-            // processJob(); This would refer to having the task do business logic on it.
-
-            // 1. Delegate the entire persistence logic to the DAO.
-            // The DAO will extract all necessary fields and save them.
-            prioFlowDao.savePriorityFlowJob(job);
-            log.info("Successfully persisted PrioFlow with Job ID: {}", job.getJobId());
-
-            // 2. Build the success response.
-            // Create updated metadata to reflect the successful outcome.
-
-            TaskMetadata taskMetadata = payload.getTaskMetadata().toBuilder()
-                    .setTaskAction(TaskAction.TASK_CREATE)
-                    .setTaskLastModifiedBy(job.getCreatedBy())
-                    .setTaskLastModifiedTimeStamp(timestamp)
-                    .setTaskDescription("Successfully persisted new priority flow: " + payload.getPrioFName())
+            // --- Business Logic for this task goes here ---
+            // For example: claim a rank from Redis, call an external API, etc.
+            // We will simulate this by populating the payload with new data.
+            PriorityFlowPayload populatedPayload = payload.toBuilder()
+                    .setPrioFId(UUID.randomUUID().toString())
+                    .setPrioFName("Processed: " + payload.getPrioFName())
+                    .setPrioFRank(100) // Example rank from a claim
                     .build();
 
-            PriorityFlowPayload successPayload = payload.toBuilder()
-                    .setTaskMetadata(taskMetadata)
-                    .build();
-
-            // Return a new Job object with the updated payload.
-            return job.toBuilder()
-                    .setPriorityFlowPayload(successPayload)
+            // Return a new Task object reflecting the successful outcome.
+            return task.toBuilder()
+                    .setTaskId(UUID.randomUUID().toString())
+                    .setTaskAction(TaskAction.TASK_SUCCESS)
+                    .setTaskLastModifiedBy(createdBy)
+                    .setTaskLastModifiedTimeStamp(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+                    .setPriorityFlowPayload(populatedPayload)
+                    .setTaskDescription("Successfully processed new priority flow: " + payload.getPrioFName())
                     .build();
 
         } catch (Exception e) {
-            log.error("Failed to persist PrioFlow Job ID: {}. Error: {}", job.getJobId(), e.getMessage(), e);
+            log.error("Business logic failed for PrioFlow Task on Job ID: {}. Error: {}", jobId, e.getMessage(), e);
 
-            // 3. Build the failure response.
-            TaskMetadata failureMetadata = payload.getTaskMetadata().toBuilder()
+            // In case of failure, return a Task object with a failure status.
+            return task.toBuilder()
                     .setTaskAction(TaskAction.TASK_FAILURE)
-                    .setTaskLastModifiedBy(job.getCreatedBy())
-                    .setTaskLastModifiedTimeStamp(timestamp)
-                    .setTaskDescription("Failed to save job to the database: " + e.getMessage())
-                    .build();
-
-            PriorityFlowPayload failurePayload = payload.toBuilder()
-                    .setTaskMetadata(failureMetadata)
-                    .build();
-
-            // In a real system, you might re-throw a custom exception or just return the failure state.
-            return job.toBuilder()
-                    .setPriorityFlowPayload(failurePayload)
+                    .setTaskLastModifiedBy(createdBy)
+                    .setTaskLastModifiedTimeStamp(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+                    .setTaskDescription("Failed to process PrioFlow task: " + e.getMessage())
                     .build();
         }
-    }
-
-    /**
-     * This is the crucial link. It declares that this service is responsible
-     * for any task within a Job that has a 'priority_flow_payload'.
-     */
-    @Override
-    public Job.PayloadCase getSupportedPayloadCase() {
-        return Job.PayloadCase.PRIORITY_FLOW_PAYLOAD;
     }
 }

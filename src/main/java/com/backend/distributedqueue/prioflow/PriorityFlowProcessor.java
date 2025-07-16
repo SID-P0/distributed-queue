@@ -1,9 +1,10 @@
 package com.backend.distributedqueue.prioflow;
 
 import com.backend.distributedqueue.exception.JobActivityException;
-import com.backend.distributedqueue.factory.JobProcessor;
+import com.backend.distributedqueue.factory.TaskProcessor;
 import com.backend.distributedqueue.prioflow.service.PrioFlowService;
-import com.shared.protos.Job;
+import com.shared.protos.Task;
+import com.shared.protos.TaskAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,25 +16,43 @@ import org.springframework.stereotype.Component;
  * These polled out users will be given session based chance's to complete their desired action, We can use redis to maintain these sessions.
  */
 @Component
-public class PriorityFlowProcessor implements JobProcessor {
+public class PriorityFlowProcessor implements TaskProcessor {
+
+    private final PrioFlowService prioFlowService;
 
     @Autowired
-    private PrioFlowService prioFlowService;
+    public PriorityFlowProcessor(PrioFlowService prioFlowService) {
+        this.prioFlowService = prioFlowService;
+    }
 
     @Override
-    public Job createJob(Job job) {
+    public Task process(Task task, String jobId, String createdBy) {
         try {
-            if (job.getJobId().isEmpty() || job.getCreatedBy().isEmpty()) {
-                throw new JobActivityException("Missing required fields for to perform action on PriorityFlow job.");
+            if (!task.hasPriorityFlowPayload()) {
+                throw new JobActivityException("Task is missing PriorityFlowPayload.");
             }
-            return prioFlowService.createTask(PrioFlowMessageBuilder.buildNewPriorityFlowJob(job.getJobId(), job.getCreatedBy(), "ExampleShow"));
+
+            // Example logic: determine action based on the task's action enum
+            // The actual Job returned from the service would need to be adapted to return a Task
+            // For now, we build a success response manually.
+            switch (task.getTaskAction()) {
+                case TASK_CREATE:
+                     task = prioFlowService.createTask(task, jobId, createdBy); // Assuming service takes a task
+                    break;
+                case TASK_UPDATE:
+                    // prioFlowService.updateTask(task);
+                    break;
+                default:
+                    throw new JobActivityException("Unsupported action for PriorityFlowProcessor: " + task.getTaskAction());
+            }
+            return task.toBuilder().setTaskAction(TaskAction.TASK_SUCCESS).build();
         } catch (Exception e) {
-            throw new JobActivityException("Failed to create PriorityFlow job: " + e.getMessage(), e);
+            throw new JobActivityException("Failed to process PriorityFlow task: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public Job.PayloadCase getSupportedPayloadCase() {
-        return Job.PayloadCase.PRIORITY_FLOW_PAYLOAD;
+    public Task.PayloadCase getSupportedPayloadCase() {
+        return Task.PayloadCase.PRIORITY_FLOW_PAYLOAD;
     }
 }

@@ -1,14 +1,12 @@
 package com.backend.distributedqueue.util;
 
-import com.google.protobuf.TextFormat;
+import com.google.protobuf.Timestamp;
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
-import com.shared.protos.JobType;
 import com.shared.protos.PriorityFlowPayload;
-
-import java.io.FileOutputStream;
+import com.shared.protos.Task;
+import com.shared.protos.TaskAction;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,16 +24,22 @@ public class PayloadGenerator {
      * @throws IOException if there is an error reading the input file or writing the output file.
      */
     public static void main(String[] args) throws IOException {
+        // A client sends a task specifying its type via an empty payload.
+        // The backend is responsible for populating the payload's fields.
+        Task priorityTask = Task.newBuilder()
+                .setTaskId("")
+                .setTaskAction(TaskAction.TASK_CREATE)
+                // Setting an empty payload correctly sets the 'payload' oneof case,
+                // allowing the orchestrator to route it to the correct processor.
+                .setPriorityFlowPayload(PriorityFlowPayload.newBuilder().build())
+                .build();
+
+        // The Job itself is also minimal, containing only the action and originator.
+        // The backend will set the job_id, name, description, and timestamps.
         Job job = Job.newBuilder()
-                .setJobName("PrioFlow test")
                 .setJobAction(JobAction.JOB_NEW)
-                .setJobType(JobType.PRIORITY_FLOW_JOB)
                 .setCreatedBy("sidheshs")
-                .setPriorityFlowPayload(PriorityFlowPayload.newBuilder()
-                        .setPrioFId("PF-MARKETING-Q4-2024")
-                        .setPrioFRank(1)
-                        .setPrioFName("Q4-Marketing-Campaign-Flow")
-                        .build())
+                .addTasks(priorityTask) // Add the task to the job
                 .build();
 
         Path output = Paths.get("job.bin");

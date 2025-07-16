@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JobActionResponse {
     private String message;
-    private String jobId;
+    private String jobCreatedBy;
 }

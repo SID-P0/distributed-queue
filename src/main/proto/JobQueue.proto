@@ -24,13 +24,6 @@ enum JobAction {
   JOB_FAILURE = 6;
 }
 
-enum JobType {
-  JOB_TYPE_UNSPECIFIED = 0;
-  EMAIL_JOB = 1;             // Renamed to avoid conflict with message name
-  DATA_POPULATION_JOB = 2;
-  PRIORITY_FLOW_JOB = 3;
-}
-
 // A more specific status for tasks, distinct from JobStatus
 enum TaskAction {
   TASK_EXECUTION_STATUS_UNSPECIFIED = 0;
@@ -44,54 +37,58 @@ enum TaskAction {
   TASK_FAILURE = 8;
 }
 
+// --- Payload Messages (Specific Task Details) ---
+// These messages now only contain the data specific to their function.
+// Common metadata has been moved to the Task message.
+message EmailPayload {
+  string unique_mail_id = 1;
+  string sender_id = 2;
+  repeated string recipient_id = 3; // 'repeated' for lists/arrays
+  string title_heading = 4;
+  string message_body = 5;
+  google.protobuf.Timestamp mail_time_stamp = 6;
+}
 
-// --- Messages ---
-message TaskMetadata {
+message PriorityFlowPayload {
+  string prio_f_id = 1; // Assuming string ID, could be int64
+  int32 prio_f_rank = 2;
+  string prio_f_name = 3;
+}
+
+message DataPopulationPayload {
+  string source_system = 1;
+  string target_entity = 2;
+  string filter_criteria = 3;
+}
+
+// --- Core Messages ---
+
+// A Task represents a single, atomic unit of work within a Job.
+message Task {
   string task_id = 1;
   TaskAction task_action = 2;
   string task_description = 3;
   string task_last_modified_by = 4;
   google.protobuf.Timestamp task_last_modified_time_stamp = 5;
-}
 
-message EmailPayload {
-  TaskMetadata task_metadata = 1;
-  string unique_mail_id = 2;
-  string sender_id = 3;
-  repeated string recipient_id = 4; // 'repeated' for lists/arrays
-  string title_heading = 5;
-  string message_body = 6;
-  google.protobuf.Timestamp mail_time_stamp = 7;
-}
-
-message PriorityFlowPayload {
-  TaskMetadata task_metadata = 1;
-  string prio_f_id = 2; // Assuming string ID, could be int64
-  int32 prio_f_rank = 3;
-  string prio_f_name = 4;
-}
-
-message DataPopulationPayload {
-  TaskMetadata task_metadata = 1;
-  string source_system = 2;
-  string target_entity = 3;
-  string filter_criteria = 4;
+  // 'oneof' ensures that each task can only have one type of payload.
+  // This cleanly defines what the task is supposed to do.
+  oneof payload {
+    EmailPayload email_payload = 6;
+    PriorityFlowPayload priority_flow_payload = 7;
+    DataPopulationPayload data_population_payload = 8;
+  }
 }
 
 message Job {
   string job_id = 1;
   string job_name = 2;
   JobAction job_action = 3;
-  JobType job_type = 4; // Discriminator field to know which payload to expect
-  string job_description = 5;
-  string created_by = 6;
-  google.protobuf.Timestamp creation_time_stamp = 7;
+  string job_description = 4;
+  string created_by = 5;
+  google.protobuf.Timestamp creation_time_stamp = 6;
 
-  // 'oneof' means only one of these fields can be set at a time.
-  // This represents the specific payload based on JobType.
-  oneof payload {
-    EmailPayload email_payload = 8;
-    PriorityFlowPayload priority_flow_payload = 9;
-    DataPopulationPayload data_population_payload = 10;
-  }
+  // A Job is now a container for a sequence of one or more tasks.
+  // This allows a single job to orchestrate multiple, varied actions.
+  repeated Task tasks = 7;
 }

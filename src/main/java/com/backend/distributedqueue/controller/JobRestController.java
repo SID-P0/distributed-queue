@@ -49,7 +49,7 @@ public class JobRestController {
             description = "Accepts a binary Protobuf job file along with a jobAction, both via multipart/form-data."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Job submitted",
+            @ApiResponse(responseCode = "200", description = "Job action submitted",
                     content = @Content(schema = @Schema(implementation = JobActionResponse.class))),
             @ApiResponse(responseCode = "400", description = "Bad input: Invalid file format or unknown jobAction",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
@@ -71,11 +71,11 @@ public class JobRestController {
         try {
             Job job = Job.parseFrom(file.getInputStream());
 
-            log.info("Received job type={} with action={} from user={}", job.getJobType(), jobAction, job.getCreatedBy());
+            log.info("Received with action={} from user={}", jobAction, job.getCreatedBy());
             jobRequestValidation.validateAndPublishJob(job, jobAction);
 
-            String msg = String.format("Job of type '%s' submitted by '%s' was accepted.", job.getJobType(), job.getCreatedBy());
-            return ResponseEntity.status(HttpStatus.CREATED).body(new JobActionResponse(msg, job.getJobId()));
+            String msg = String.format("Job submitted by '%s' was accepted.", job.getCreatedBy());
+            return ResponseEntity.status(HttpStatus.OK).body(new JobActionResponse(msg, job.getCreatedBy()));
 
         } catch (InvalidProtocolBufferException e) {
             log.error("Failed to parse Protobuf file. It may be corrupted or not a valid Job message.", e);

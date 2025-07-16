@@ -1,9 +1,11 @@
 package com.backend.distributedqueue.orchestrator;
 
 import com.backend.distributedqueue.exception.JobActivityException;
-import com.backend.distributedqueue.factory.JobProcessor;
-import com.backend.distributedqueue.factory.JobProcessorFactory;
+import com.backend.distributedqueue.factory.TaskProcessor;
+import com.backend.distributedqueue.factory.TaskProcessorFactory;
+import com.backend.distributedqueue.prioflow.dao.PrioFlowDao;
 import com.backend.distributedqueue.producer.KafkaJobProducer;
+import com.shared.protos.Task;
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,9 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -20,14 +25,16 @@ public class JobOrchestrator {
 
     private static final Logger logger = LoggerFactory.getLogger(JobOrchestrator.class);
 
-    private final JobProcessorFactory jobProcessorFactory;
+    // All dependencies should be final and injected via the constructor for robustness.
+    private final TaskProcessorFactory taskProcessorFactory;
+    private final KafkaJobProducer kafkaJobProducer;
+    private final PrioFlowDao prioFlowDao;
 
-    @Autowired
-    public KafkaJobProducer kafkaJobProducer;
-
-    @Autowired
-    public JobOrchestrator(JobProcessorFactory jobProcessorFactory) {
-        this.jobProcessorFactory = jobProcessorFactory;
+    // A single constructor for all required dependencies. @Autowired is not needed on constructors with Spring 4.3+.
+    public JobOrchestrator(TaskProcessorFactory taskProcessorFactory, KafkaJobProducer kafkaJobProducer, PrioFlowDao prioFlowDao) {
+        this.taskProcessorFactory = taskProcessorFactory;
+        this.kafkaJobProducer = kafkaJobProducer;
+        this.prioFlowDao = prioFlowDao;
     }
 
     /**
@@ -48,45 +55,26 @@ public class JobOrchestrator {
     public void listenForJobActions(Job job) {
         logger.info("Received job action event for Job ID: {} with action: {}", job.getJobId(), job.getJobAction());
 
+        if (job.getTasksCount() == 0) {
+            logger.warn("Job with ID {} received with no tasks. Nothing to process.", job.getJobId());
+            return;
+        }
+
+        List<Task> processedTasks = new ArrayList<>();
         try {
-            performJobAction(job, job.getJobAction());
-            logger.info("Successfully processed action {} for Job ID: {}", job.getJobAction(), job.getJobId());
-        } catch (JobActivityException e) {
-            logger.error("JobActivityException while processing action {} for Job ID {}: {}", job.getJobAction(), job.getJobId(), e.getMessage(), e);
-            Job updatedJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).setJobDescription(e.getMessage()).build();
-            kafkaJobProducer.publishJobStatusUpdate(updatedJob);
+            for (Task task : job.getTasksList()) {
+                TaskProcessor processor = taskProcessorFactory.getProcessor(task.getPayloadCase());
+                Task processedTask = processor.process(task, job.getJobId(), job.getCreatedBy());
+                processedTasks.add(processedTask);
+            }
+            // Build a final job status update message
+            Job.Builder updatedJobStatus = job.toBuilder().clearTasks().addAllTasks(processedTasks);
+            prioFlowDao.saveJob(updatedJobStatus.build());
+            kafkaJobProducer.publishJobStatusUpdate(updatedJobStatus.build());
         } catch (Exception e) {
-            logger.error("Unexpected exception while processing action {} for Job ID {}: {}", job.getJobAction(), job.getJobId(), e.getMessage(), e);
-            Job updatedJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).build();
-            kafkaJobProducer.publishJobStatusUpdate(updatedJob);
+            logger.error("Unrecoverable exception in orchestrator for Job ID {}: {}", job.getJobId(), e.getMessage(), e);
+            Job failureJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).setJobDescription("Orchestrator failure: " + e.getMessage()).build();
+            kafkaJobProducer.publishJobStatusUpdate(failureJob);
         }
-    }
-
-
-    /**
-     * Performs the specified action (CREATE, UPDATE, DELETE) on the job
-     * using the appropriate processor. This method is now typically called
-     * by the Kafka listener.
-     *
-     * @param job    The job object.
-     * @param action The action to perform.
-     */
-    public void performJobAction(Job job, JobAction action) {
-        // Validate that the job has a payload case before getting a processor
-        if (job.getPayloadCase() == Job.PayloadCase.PAYLOAD_NOT_SET) {
-            throw new JobActivityException("Job payload is not set for Job ID: " + job.getJobId());
-        }
-        JobProcessor processor = jobProcessorFactory.getProcessor(job.getPayloadCase());
-        Job updatedJob = switch (action) {
-            case JOB_NEW -> processor.createJob(job);
-            case JOB_UPDATE -> processor.updateJob(job);
-            case JOB_DELETE -> processor.deleteJob(job);
-            default ->
-                    throw new JobActivityException("Unsupported job action: " + action + " for Job ID: " + job.getJobId());
-        };
-
-        // After performing the action, publish the updated job state and persist it.
-        // The 'job' object here should reflect any changes made by the processor.
-        kafkaJobProducer.publishJobStatusUpdate(updatedJob);
     }
 }

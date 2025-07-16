@@ -1,6 +1,6 @@
 package com.backend.distributedqueue.prioflow.repository;
 
-import com.backend.distributedqueue.prioflow.dto.JobEntity;
+import com.backend.distributedqueue.models.JobEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

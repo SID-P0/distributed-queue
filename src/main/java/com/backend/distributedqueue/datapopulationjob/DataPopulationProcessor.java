@@ -1,25 +1,21 @@
 package com.backend.distributedqueue.datapopulationjob;
 
-import com.backend.distributedqueue.factory.JobProcessor;
-import com.shared.protos.DataPopulationPayload;
-import com.shared.protos.Job;
+import com.backend.distributedqueue.factory.TaskProcessor;
+import com.shared.protos.Task;
 import org.springframework.stereotype.Component;
 
 /**
  * TODO: This processor should be its own separate external app in itself within this monorepo in order to scale this functionality.
  */
 @Component
-public class DataPopulationProcessor implements JobProcessor {
+public class DataPopulationProcessor implements TaskProcessor {
 
-    @Override
-    public Job createJob(Job job) {
-        DataPopulationPayload dataPopulationPayload = job.getDataPopulationPayload();
-        System.out.println("Processing DataPopulation Job via Factory: " + dataPopulationPayload.getSourceSystem());
-        return job;
+    public Task process(Task task, String jobId, String createdBy) {
+        return null;
     }
 
     @Override
-    public Job.PayloadCase getSupportedPayloadCase() {
-        return Job.PayloadCase.DATA_POPULATION_PAYLOAD;
+    public Task.PayloadCase getSupportedPayloadCase() {
+        return Task.PayloadCase.DATA_POPULATION_PAYLOAD;
     }
 }
