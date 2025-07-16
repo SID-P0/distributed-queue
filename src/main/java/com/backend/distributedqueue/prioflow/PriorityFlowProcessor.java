@@ -32,21 +32,22 @@ public class PriorityFlowProcessor implements TaskProcessor {
                 throw new JobActivityException("Task is missing PriorityFlowPayload.");
             }
 
-            // Example logic: determine action based on the task's action enum
-            // The actual Job returned from the service would need to be adapted to return a Task
-            // For now, we build a success response manually.
-            switch (task.getTaskAction()) {
-                case TASK_CREATE:
-                     task = prioFlowService.createTask(task, jobId, createdBy); // Assuming service takes a task
-                    break;
-                case TASK_UPDATE:
-                    // prioFlowService.updateTask(task);
-                    break;
-                default:
-                    throw new JobActivityException("Unsupported action for PriorityFlowProcessor: " + task.getTaskAction());
-            }
-            return task.toBuilder().setTaskAction(TaskAction.TASK_SUCCESS).build();
+            // Delegate processing to the service based on the task action.
+            Task processedTask = switch (task.getTaskAction()) {
+                case TASK_CREATE -> prioFlowService.createTask(task, jobId, createdBy);
+                case TASK_UPDATE, TASK_DELETE -> throw new JobActivityException(
+                        "Action " + task.getTaskAction() + " is not yet implemented for PriorityFlowProcessor.");
+                default -> throw new JobActivityException(
+                        "Unsupported action for PriorityFlowProcessor: " + task.getTaskAction());
+            };
+
+            // If the service call completes without an exception, we consider it a success.
+            // The final task state is set to TASK_SUCCESS.
+            return processedTask.toBuilder().setTaskAction(TaskAction.TASK_SUCCESS).build();
         } catch (Exception e) {
+            if (e instanceof JobActivityException) {
+                throw e; // Re-throw exceptions we've already wrapped.
+            }
             throw new JobActivityException("Failed to process PriorityFlow task: " + e.getMessage(), e);
         }
     }

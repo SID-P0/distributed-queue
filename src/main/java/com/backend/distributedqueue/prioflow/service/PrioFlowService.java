@@ -54,6 +54,7 @@ public class PrioFlowService {
         PriorityFlowPayload payload = task.getPriorityFlowPayload();
 
         try {
+            // assignPriorityRank(task);
             // --- Business Logic for this task goes here ---
             // For example: claim a rank from Redis, call an external API, etc.
             // We will simulate this by populating the payload with new data.

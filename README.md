@@ -16,3 +16,9 @@ Volume mount the local code to build and run the application
 
 **IF YOU WANT TO RUN INFRA YOU MUST RUN DEV ENV IN ORDER TO LOCALLY SUPPORT NETWORK BRIDGE**
 
+
+**TODO**
+1. Rate limiting and user sessions using redis
+2. SSE
+3. Parallel processing of jobs ( POC )
+4. Retry Mechanism (DLQ/Api retries)

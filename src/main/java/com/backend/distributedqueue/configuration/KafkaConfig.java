@@ -25,7 +25,7 @@ public class KafkaConfig {
     private String bootstrapServers;
 
     // It's good practice to also inject the schema registry URL from properties
-    @Value("${spring.kafka.properties.schema.registry.url:http://localhost:8081}")
+    @Value("${spring.kafka.properties.schema.registry.url}")
     private String schemaRegistryUrl;
 
     @Bean

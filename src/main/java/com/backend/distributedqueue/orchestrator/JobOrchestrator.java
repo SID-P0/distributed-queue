@@ -1,6 +1,5 @@
 package com.backend.distributedqueue.orchestrator;
 
-import com.backend.distributedqueue.exception.JobActivityException;
 import com.backend.distributedqueue.factory.TaskProcessor;
 import com.backend.distributedqueue.factory.TaskProcessorFactory;
 import com.backend.distributedqueue.prioflow.dao.PrioFlowDao;
@@ -8,7 +7,6 @@ import com.backend.distributedqueue.producer.KafkaJobProducer;
 import com.shared.protos.Task;
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
@@ -68,12 +66,13 @@ public class JobOrchestrator {
                 processedTasks.add(processedTask);
             }
             // Build a final job status update message
-            Job.Builder updatedJobStatus = job.toBuilder().clearTasks().addAllTasks(processedTasks);
-            prioFlowDao.saveJob(updatedJobStatus.build());
-            kafkaJobProducer.publishJobStatusUpdate(updatedJobStatus.build());
+            Job updatedJobStatus = job.toBuilder().clearTasks().addAllTasks(processedTasks).build();
+            prioFlowDao.saveJob(updatedJobStatus);
+            kafkaJobProducer.publishJobStatusUpdate(updatedJobStatus);
         } catch (Exception e) {
             logger.error("Unrecoverable exception in orchestrator for Job ID {}: {}", job.getJobId(), e.getMessage(), e);
             Job failureJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).setJobDescription("Orchestrator failure: " + e.getMessage()).build();
+            prioFlowDao.saveJob(failureJob);
             kafkaJobProducer.publishJobStatusUpdate(failureJob);
         }
     }
