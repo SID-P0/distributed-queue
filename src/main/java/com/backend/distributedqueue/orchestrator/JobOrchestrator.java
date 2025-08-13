@@ -2,8 +2,9 @@ package com.backend.distributedqueue.orchestrator;
 
 import com.backend.distributedqueue.factory.TaskProcessor;
 import com.backend.distributedqueue.factory.TaskProcessorFactory;
-import com.backend.distributedqueue.prioflow.dao.PrioFlowDao;
+import com.backend.distributedqueue.dao.JobFlowDao;
 import com.backend.distributedqueue.producer.KafkaJobProducer;
+import com.backend.distributedqueue.sse.SSEService;
 import com.shared.protos.Task;
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
@@ -26,13 +27,15 @@ public class JobOrchestrator {
     // All dependencies should be final and injected via the constructor for robustness.
     private final TaskProcessorFactory taskProcessorFactory;
     private final KafkaJobProducer kafkaJobProducer;
-    private final PrioFlowDao prioFlowDao;
+    private final JobFlowDao jobFlowDao;
+    private final SSEService sseService;
 
     // A single constructor for all required dependencies. @Autowired is not needed on constructors with Spring 4.3+.
-    public JobOrchestrator(TaskProcessorFactory taskProcessorFactory, KafkaJobProducer kafkaJobProducer, PrioFlowDao prioFlowDao) {
+    public JobOrchestrator(TaskProcessorFactory taskProcessorFactory, KafkaJobProducer kafkaJobProducer, JobFlowDao jobFlowDao, SSEService sseService) {
         this.taskProcessorFactory = taskProcessorFactory;
         this.kafkaJobProducer = kafkaJobProducer;
-        this.prioFlowDao = prioFlowDao;
+        this.jobFlowDao = jobFlowDao;
+        this.sseService = sseService;
     }
 
     /**
@@ -52,7 +55,6 @@ public class JobOrchestrator {
     )
     public void listenForJobActions(Job job) {
         logger.info("Received job action event for Job ID: {} with action: {}", job.getJobId(), job.getJobAction());
-
         if (job.getTasksCount() == 0) {
             logger.warn("Job with ID {} received with no tasks. Nothing to process.", job.getJobId());
             return;
@@ -67,13 +69,15 @@ public class JobOrchestrator {
             }
             // Build a final job status update message
             Job updatedJobStatus = job.toBuilder().clearTasks().addAllTasks(processedTasks).build();
-            prioFlowDao.saveJob(updatedJobStatus);
+            jobFlowDao.saveJob(updatedJobStatus);
             kafkaJobProducer.publishJobStatusUpdate(updatedJobStatus);
+            sseService.broadcastEvent(job);
         } catch (Exception e) {
             logger.error("Unrecoverable exception in orchestrator for Job ID {}: {}", job.getJobId(), e.getMessage(), e);
             Job failureJob = job.toBuilder().setJobAction(JobAction.JOB_FAILURE).setJobDescription("Orchestrator failure: " + e.getMessage()).build();
-            prioFlowDao.saveJob(failureJob);
+            jobFlowDao.saveJob(failureJob);
             kafkaJobProducer.publishJobStatusUpdate(failureJob);
+            sseService.broadcastEvent(job);
         }
     }
 }

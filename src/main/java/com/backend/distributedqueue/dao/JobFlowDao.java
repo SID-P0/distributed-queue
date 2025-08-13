@@ -1,11 +1,14 @@
-package com.backend.distributedqueue.prioflow.dao;
+package com.backend.distributedqueue.dao;
 
+import com.backend.distributedqueue.datapopulationjob.models.DataPopulationPayloadEntity;
+import com.backend.distributedqueue.exception.JobActivityException;
 import com.backend.distributedqueue.models.JobEntity;
-import com.backend.distributedqueue.prioflow.dto.PriorityFlowPayloadEntity;
+import com.backend.distributedqueue.prioflow.models.PriorityFlowPayloadEntity;
 import com.backend.distributedqueue.models.TaskEntity;
 import com.backend.distributedqueue.prioflow.repository.JobRepository;
 import com.google.protobuf.Timestamp;
 import com.shared.protos.Job;
+import com.shared.protos.Task;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +22,7 @@ import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-public class PrioFlowDao {
+public class JobFlowDao {
 
     private final JobRepository jobRepository;
 
@@ -32,14 +35,13 @@ public class PrioFlowDao {
      * @return The persisted JobEntity, including its cascaded children.
      */
     @Transactional
-    public JobEntity saveJob(Job job) {
+    public void saveJob(Job job) {
         // 1. Create the top-level JobEntity from the protobuf message
-        JobEntity jobEntity = new JobEntity();
-        if (job.getJobId() != null && !job.getJobId().isEmpty()) {
-            jobEntity.setJobId(UUID.fromString(job.getJobId()));
-        } else {
-            jobEntity.setJobId(UUID.randomUUID()); // Or throw an exception if ID is mandatory
+        if (job.getJobId().isEmpty()) {
+            throw new JobActivityException("Job already exists");
         }
+        JobEntity jobEntity = new JobEntity();
+        jobEntity.setJobId(UUID.fromString(job.getJobId()));
         jobEntity.setJobName(job.getJobName());
         jobEntity.setJobAction(job.getJobAction().name());
         jobEntity.setJobDescription(job.getJobDescription());
@@ -72,7 +74,18 @@ public class PrioFlowDao {
                 // Establish bidirectional relationship for this payload
                 taskEntity.setPriorityFlowPayload(payloadEntity);
             }
-            // Note: Add 'else if' blocks here to handle other payload types like EmailPayload.
+            else if(protoTask.getPayloadCase() == Task.PayloadCase.DATA_POPULATION_PAYLOAD){
+                var protoPayload = protoTask.getDataPopulationPayload();
+
+                DataPopulationPayloadEntity payloadEntity = new DataPopulationPayloadEntity();
+                payloadEntity.setSourceSystem(protoPayload.getSourceSystem());
+                payloadEntity.setTargetEntity(protoPayload.getTargetEntity());
+                payloadEntity.setFilterCriteria(protoPayload.getFilterCriteria());
+                payloadEntity.setPayloadData(payloadEntity.getPayloadData());
+
+                taskEntity.setDataPopulationPayloadEntity(payloadEntity);
+            }
+
 
             // 5. Establish relationship to the parent job and add to list
             taskEntities.add(taskEntity);
@@ -82,7 +95,7 @@ public class PrioFlowDao {
         taskEntities.forEach(jobEntity::addTask);
 
         // 7. Save the aggregate root (JobEntity). JPA's cascading will persist all child entities.
-        return jobRepository.save(jobEntity);
+        jobRepository.save(jobEntity);
     }
 
     /**

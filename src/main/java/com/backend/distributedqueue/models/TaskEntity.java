@@ -1,6 +1,7 @@
 package com.backend.distributedqueue.models;
 
-import com.backend.distributedqueue.prioflow.dto.PriorityFlowPayloadEntity;
+import com.backend.distributedqueue.datapopulationjob.models.DataPopulationPayloadEntity;
+import com.backend.distributedqueue.prioflow.models.PriorityFlowPayloadEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,9 @@ public class TaskEntity {
 
     @OneToOne(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private PriorityFlowPayloadEntity priorityFlowPayload;
+
+    @OneToOne(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private DataPopulationPayloadEntity dataPopulationPayloadEntity;
 
     /**
      * Helper method to maintain the bidirectional relationship for the payload.

@@ -1,4 +1,4 @@
-package com.backend.distributedqueue.prioflow.dto;
+package com.backend.distributedqueue.prioflow.models;
 
 import com.backend.distributedqueue.models.TaskEntity;
 import jakarta.persistence.*;

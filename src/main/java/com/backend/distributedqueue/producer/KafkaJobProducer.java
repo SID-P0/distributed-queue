@@ -10,19 +10,18 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor // Use Lombok to create the constructor for you
+@RequiredArgsConstructor
 public class KafkaJobProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaJobProducer.class);
 
-    // Dependencies are now final and injected via the constructor
     private final KafkaTemplate<String, Job> kafkaTemplate;
 
     @Value("${kafka.topic.job-actions}")
     private String jobActionsTopic;
 
     @Value("${kafka.topic.job-status-updates}")
-    private String jobStatusUpdatesTopic; // Renamed for clarity
+    private String jobStatusUpdatesTopic;
 
     /**
      * Publishes a new or updated job to the processing topic.
@@ -35,7 +34,6 @@ public class KafkaJobProducer {
             kafkaTemplate.send(jobActionsTopic, job.getJobId(), job);
             logger.info("Successfully published job event for ID: {}", job.getJobId());
         } catch (Exception e) {
-            // CORRECTED LOGGING: The exception 'e' is the last argument.
             logger.error("Failed to publish job with ID {} to topic '{}'", job.getJobId(), jobActionsTopic, e);
             throw new JobActivityException("Failed to publish job event");
             // TODO: Implement a robust retry/DLQ (Dead Letter Queue) strategy here.

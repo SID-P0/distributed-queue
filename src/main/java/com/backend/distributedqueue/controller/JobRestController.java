@@ -2,9 +2,11 @@ package com.backend.distributedqueue.controller;
 
 import com.backend.distributedqueue.models.JobActionResponse;
 import com.backend.distributedqueue.validation.JobRequestValidation;
+import com.backend.distributedqueue.validation.RateLimiterService;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.shared.protos.Job;
 import com.shared.protos.JobAction;
+import com.shared.protos.UserMetadata;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +34,7 @@ public class JobRestController {
 
     // 2. The dependency is now final and injected via the constructor
     private final JobRequestValidation jobRequestValidation;
+    private final RateLimiterService rateLimiterService;
 
     @Operation(summary = "Health Check", description = "Checks the health of the application.")
     @ApiResponses(value = {
@@ -56,19 +59,23 @@ public class JobRestController {
     })
     @PostMapping(value = "/handleJob", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JobActionResponse> handleJob(
+            @Parameter(description = "Binary Protobuf-encoded UserMetadata", required = true)
+            @RequestParam("userMetadata") MultipartFile userMetadataFile,
+
             @Parameter(description = "Binary Protobuf-encoded job file", required = true, content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
             @RequestParam("file") MultipartFile file,
 
             @Parameter(description = "Action to perform on the job", required = true, schema = @Schema(implementation = JobAction.class))
-            // 3. Let Spring convert the String to an Enum automatically.
             @RequestParam("jobAction") JobAction jobAction) {
 
         if (file.isEmpty()) {
-            // It's good practice to throw a specific exception that a @ControllerAdvice can handle.
             throw new IllegalArgumentException("Protobuf file part cannot be empty.");
         }
 
         try {
+            UserMetadata userMetadata = UserMetadata.parseFrom(userMetadataFile.getInputStream());
+            rateLimiterService.checkRateLimit(userMetadata.getUserId(), userMetadata.getUserIp());
+
             Job job = Job.parseFrom(file.getInputStream());
 
             log.info("Received with action={} from user={}", jobAction, job.getCreatedBy());

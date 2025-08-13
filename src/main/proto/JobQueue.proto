@@ -12,6 +12,14 @@ option java_package = "com.shared.protos"; // THIS IS CRITICAL for Java
 // Import for Timestamp (for date/time fields)
 import "google/protobuf/timestamp.proto";
 
+// Contains context about the user submitting the request.
+// This is sent as a separate part of the multipart request for fast parsing and rate limiting.
+message UserMetadata {
+  string user_id = 1;
+  string user_name = 2;
+  string user_ip = 3; // Note: Be mindful of privacy regulations like GDPR when handling and storing user IP addresses.
+}
+
 // --- Enums ---
 
 enum JobAction {
@@ -59,6 +67,7 @@ message DataPopulationPayload {
   string source_system = 1;
   string target_entity = 2;
   string filter_criteria = 3;
+  string data_payload = 4;
 }
 
 // --- Core Messages ---

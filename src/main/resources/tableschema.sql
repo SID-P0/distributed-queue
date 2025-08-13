@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS data_population_payloads (
     task_id UUID PRIMARY KEY REFERENCES tasks(task_id) ON DELETE CASCADE,
     source_system VARCHAR(255) NOT NULL,
     target_entity VARCHAR(255) NOT NULL,
-    filter_criteria TEXT
+    filter_criteria TEXT,
+    payload_data JSONB
 );
 
 -- Indexes to optimize JOINs and lookups.

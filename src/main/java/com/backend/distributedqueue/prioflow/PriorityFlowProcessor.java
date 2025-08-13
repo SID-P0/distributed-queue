@@ -35,7 +35,8 @@ public class PriorityFlowProcessor implements TaskProcessor {
             // Delegate processing to the service based on the task action.
             Task processedTask = switch (task.getTaskAction()) {
                 case TASK_CREATE -> prioFlowService.createTask(task, jobId, createdBy);
-                case TASK_UPDATE, TASK_DELETE -> throw new JobActivityException(
+                case TASK_UPDATE -> prioFlowService.updateTask(task, jobId, createdBy);
+                case TASK_DELETE -> throw new JobActivityException(
                         "Action " + task.getTaskAction() + " is not yet implemented for PriorityFlowProcessor.");
                 default -> throw new JobActivityException(
                         "Unsupported action for PriorityFlowProcessor: " + task.getTaskAction());

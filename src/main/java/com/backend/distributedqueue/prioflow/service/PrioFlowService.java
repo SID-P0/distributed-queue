@@ -41,7 +41,7 @@ public class PrioFlowService {
 
     /**
      * Processes a 'TASK_CREATE' action for a Priority Flow job.
-     * This method now correctly extracts data from the incoming job, delegates
+     * This method now extracts data from the incoming job, delegates
      * business logic, and returns a task object indicating the outcome.
      *
      * @param task      The Task containing a PriorityFlowPayload.
@@ -67,10 +67,37 @@ public class PrioFlowService {
             // Return a new Task object reflecting the successful outcome.
             return task.toBuilder()
                     .setTaskId(UUID.randomUUID().toString())
-                    .setTaskAction(TaskAction.TASK_SUCCESS)
+                    .setTaskAction(TaskAction.TASK_CREATE)
                     .setTaskLastModifiedBy(createdBy)
                     .setTaskLastModifiedTimeStamp(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
                     .setPriorityFlowPayload(populatedPayload)
+                    .setTaskDescription("Successfully processed new priority flow: " + payload.getPrioFName())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Business logic failed for PrioFlow Task on Job ID: {}. Error: {}", jobId, e.getMessage(), e);
+
+            // In case of failure, return a Task object with a failure status.
+            return task.toBuilder()
+                    .setTaskAction(TaskAction.TASK_FAILURE)
+                    .setTaskLastModifiedBy(createdBy)
+                    .setTaskLastModifiedTimeStamp(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+                    .setTaskDescription("Failed to process PrioFlow task: " + e.getMessage())
+                    .build();
+        }
+    }
+
+    public Task updateTask(Task task, String jobId, String createdBy){
+        log.info("Executing Update task for PrioFlow with Job ID: {}", jobId);
+        PriorityFlowPayload payload = task.getPriorityFlowPayload();
+        try {
+            // Return a new Task object reflecting the successful outcome.
+            return task.toBuilder()
+                    .setTaskId(UUID.randomUUID().toString())
+                    .setTaskAction(TaskAction.TASK_UPDATE)
+                    .setTaskLastModifiedBy(createdBy)
+                    .setTaskLastModifiedTimeStamp(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()).build())
+                    .setPriorityFlowPayload(payload)
                     .setTaskDescription("Successfully processed new priority flow: " + payload.getPrioFName())
                     .build();
 

@@ -18,6 +18,13 @@ public class JobRequestValidation {
     @Autowired
     private KafkaJobProducer kafkaJobProducer;
 
+    /**
+     * TODO Implement better validation logic here later.
+     * Validate the job creation
+     *
+     * @param job
+     * @param jobAction
+     */
     public void validateAndPublishJob(Job job, JobAction jobAction) {
         try {
             // Assign a unique key when job arrives for the first time for kafka partitioning, Else process for further actions
@@ -41,7 +48,7 @@ public class JobRequestValidation {
 
     public void validateJob(Job job) {
         if (job == null || job.getJobId().isEmpty() || job.getJobAction() == JobAction.JOB_STATUS_UNSPECIFIED || job.getCreatedBy().isEmpty()) {
-            throw new JobActivityException("Job creation was not successful, missing required fields : {}. \n Please contact the admin.");
+            throw new JobActivityException("Job action was not successful. \n Please contact the admin.");
         }
     }
 }
