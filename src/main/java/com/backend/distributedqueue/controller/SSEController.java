@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 
 @RestController
-@RequestMapping("/api/jobs") // A good practice to group APIs
+@RequestMapping("/api/jobs")
 @Tag(name = "Job Status", description = "API for streaming real-time job status updates")
 @RequiredArgsConstructor
 public class SSEController {
