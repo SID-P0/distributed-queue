@@ -1,10 +1,10 @@
 **Distributed Job Queue System**
 
-A distributed job queue system designed to manage and coordinate complex job orchestration across multiple services. The system supports both automated and manually-triggered jobs, leveraging a load balancer and orchestrator to efficiently publish tasks to a Kafka queue.
+A distributed job queue system engineered to coordinate and execute complex jobs, where each job can comprise multiple tasks. It supports both automated and manual job triggering, using a load balancer and orchestrator to efficiently dispatch tasks via a Kafka-backed queue.
 
-Each job can encompass multiple tasks, allowing for granular execution and easy scaling. Dedicated consumer services process queued jobs, updating their status in real-time through a central job status topic. Comprehensive tracking is achieved via server-side events and audit tables, ensuring that all dependencies and metadata are effectively managed.
+Key features include built-in rate limiting to ensure fair resource usage and prevent system overload, as well as parallel processing capabilities for different tasks, maximizing throughput and responsiveness. Multiple independent consumer services process queued jobs concurrently, updating job statuses in real time through a central topic.
 
-The architecture enables reliable status updates to upstream components, allowing services to respond dynamically to job dependencies and ensuring seamless orchestration throughout the workflow.
+Robust tracking is achieved with server-side events and audit tables, ensuring all dependencies and metadata are properly managed. The system enables reliable status propagation to upstream components so services can respond dynamically to job dependencies, facilitating seamless orchestration, compliance, and transparency throughout the entire workflow.
 
 **Proposed architecture diagram**
 
