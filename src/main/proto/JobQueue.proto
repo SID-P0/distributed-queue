@@ -17,7 +17,7 @@ import "google/protobuf/timestamp.proto";
 message UserMetadata {
   string user_id = 1;
   string user_name = 2;
-  string user_ip = 3; // Note: Be mindful of privacy regulations like GDPR when handling and storing user IP addresses.
+  string user_ip = 3;
 }
 
 // --- Enums ---

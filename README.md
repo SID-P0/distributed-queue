@@ -41,5 +41,5 @@ Volume mount the local code to build and run the application
 
 
 **TODO**
-1. Parallel processing of jobs ( POC )
-2. Retry Mechanism (DLQ/Api retries)
+1. Retry Mechanism (DLQ/Api retries)
+2. Different environment for QA/UAT.
