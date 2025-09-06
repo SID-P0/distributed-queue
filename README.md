@@ -6,9 +6,13 @@ Key features include built-in rate limiting to ensure fair resource usage and pr
 
 Robust tracking is achieved with server-side events and audit tables, ensuring all dependencies and metadata are properly managed. The system enables reliable status propagation to upstream components so services can respond dynamically to job dependencies, facilitating seamless orchestration, compliance, and transparency throughout the entire workflow.
 
+
+
 **Proposed architecture diagram**
 
 <img width="720" height="820" alt="image" src="https://github.com/user-attachments/assets/95bcbd56-ebf2-428c-9027-dbbde3a95e4e" />
+
+
 
 
 **Proposed Schema**
