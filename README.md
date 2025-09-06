@@ -6,12 +6,12 @@ Each job can encompass multiple tasks, allowing for granular execution and easy 
 
 The architecture enables reliable status updates to upstream components, allowing services to respond dynamically to job dependencies and ensuring seamless orchestration throughout the workflow.
 
-Proposed architecture diagram
+**Proposed architecture diagram**
 
 <img width="720" height="820" alt="image" src="https://github.com/user-attachments/assets/95bcbd56-ebf2-428c-9027-dbbde3a95e4e" />
 
 
-Proposed Schema
+**Proposed Schema**
 
 <img width="722" height="874" alt="image" src="https://github.com/user-attachments/assets/997704aa-a6e7-47d2-8b76-e7e2faaaf235" />
 
